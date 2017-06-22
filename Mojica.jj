@@ -1,0 +1,207 @@
+PARSER_BEGIN(Mojica)
+import java.io.*;
+public class Mojica {
+
+  public static void main(String args[]) throws ParseException,IOException {
+
+    Mojica mojica = new Mojica(new FileInputStream(args[0]));
+    mojica.PROG();
+  }
+
+}
+
+PARSER_END(Mojica)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+  <VOID: "void">
+| <MAIN: "main">
+| <LBRACE:"(">
+| <RBRACE: ")">
+| <LCURLY:"{">
+| <RCURLY:"}">
+| <INT:"int">
+| <BOOL:"bool">
+| <TRUE:"true">
+| <FALSE:"false">
+| <NOT:"not">
+| <AND:"and">
+| <OR:"or">
+| <LEQ:"leq">
+| <IF:"if">
+| <WHILE:"while">
+| <DO:"do">
+| <RETURN:"return">
+| <ATRIB:":=">
+| <VIRGULA:",">
+| <PONTOVIRGULA:";">
+| <SKIP_IT:"skip();">
+}
+
+
+TOKEN :
+{
+  <OPA: ("+"|"-")>
+| <TOKEN_id: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*(["_"])*>
+| <TOKEN_num: (["0"-"9"])+>
+| <OPM: ("*"|"/")>
+}
+
+void PROG () :
+{}
+{ MAIN () LFUNC ()
+}
+
+void MAIN () :
+{}
+{
+  <VOID> <MAIN> <LBRACE> <RBRACE> <LCURLY> VARDECL () SEQCOMANDOS () <RCURLY>
+}
+
+void VARDECL () :
+{}
+{
+  VARDECL_2()
+}
+
+void VARDECL_2 () :
+{}
+{
+  (TIPO () <TOKEN_id><PONTOVIRGULA> VARDECL())?
+}
+
+void TIPO () :
+{}
+{
+  <INT>|<BOOL>
+}
+
+void SEQCOMANDOS () :
+{}
+{
+  (COMANDO () SEQCOMANDOS_2 ())?
+}
+
+void SEQCOMANDOS_2 () :
+{}
+{
+  SEQCOMANDOS ()
+}
+
+void COMANDO () :
+{}
+{
+  <SKIP_IT>
+  | <TOKEN_id> OPCAO1 ()
+  | <IF><LBRACE> BOOLEXP () <RBRACE><LCURLY> SEQCOMANDOS () <RCURLY>
+  | <WHILE><LBRACE> BOOLEXP () <RBRACE><DO><LCURLY> SEQCOMANDOS ()<RCURLY>
+  | <RETURN> TIPORETURN () <PONTOVIRGULA>
+}
+
+void OPCAO1 () :
+{}
+{
+  <ATRIB> EXPS () <PONTOVIRGULA>
+  | <LBRACE> LISTAEXP () <RBRACE><PONTOVIRGULA>
+}
+
+void BOOLEXP () :
+{}
+{	
+	<TRUE>
+  |	<FALSE>
+  | <NOT><LBRACE> BOOLEXP () <RBRACE>
+  | <AND><LBRACE> BOOLEXP () <RBRACE><LBRACE> BOOLEXP () <RBRACE>
+  | <OR><LBRACE> BOOLEXP () <RBRACE><LBRACE> BOOLEXP () <RBRACE>
+  | <LEQ><LBRACE> EXPS () <RBRACE><LBRACE> EXPS () <RBRACE>
+}
+
+void TIPORETURN () :
+{}
+{
+  EXPS ()
+  | BOOLEXP ()
+}
+
+void EXPS () :
+{}
+{
+  TERMO () EXPS_2()
+}
+
+void EXPS_2 () :
+{}
+{
+  (<OPA> TERMO () EXPS_2())?
+}
+
+void TERMO () :
+{}
+{
+  FATOR () TERMO_2 ()
+}
+
+void TERMO_2 () :
+{}
+{
+  (<OPM> FATOR () TERMO_2 ())?
+
+}
+
+void FATOR () :
+{}
+{
+  <TOKEN_id> OPCAO2 ()
+  | <TOKEN_num>
+  | <LBRACE> EXPS () <RBRACE>
+}
+
+void OPCAO2 () :
+{}
+{
+  (<LBRACE> LISTAEXP () <RBRACE>)?
+}
+
+void LISTAEXP () :
+{}
+{
+  EXPS () LISTAEXP_2 ()
+}
+
+void LISTAEXP_2 () :
+{}
+{
+  (<VIRGULA> EXPS () LISTAEXP_2 ())?
+}
+
+void LFUNC () :
+{}
+{
+  (FUNC () LFUNC ())?
+}
+
+void FUNC () :
+{}
+{
+  TIPO () <TOKEN_id><LBRACE> LISTAARG () <RBRACE><LCURLY> VARDECL () SEQCOMANDOS ()<RCURLY>
+}
+
+void LISTAARG () :
+{}
+{
+  (TIPO () <TOKEN_id> LISTAARG_2 ())?
+}
+
+void LISTAARG_2 () :
+{}
+{
+  (<VIRGULA> TIPO () <TOKEN_id> LISTAARG ())?
+}
