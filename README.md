@@ -2,7 +2,8 @@
 Lexical/syntax analyzer for the Mojica language.
 
 ## Compiling:
-$ javacc Mojica.jj
+$ javacc Mojica.jj 
+
 $ javac *.java
 
 ## Executing: 
